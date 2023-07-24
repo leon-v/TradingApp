@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@aws-sdk/client-cloud9": "^3.370.0",
+    "@aws-sdk/client-secrets-manager": "^3.370.0",
+    "aws-sdk": "^2.1415.0",
+    "axios": "^1.4.0",
+    "crypto-js": "^4.1.1",
+    "ir-api": "^1.1.2",
+    "mysql": "^2.18.1",
+    "typings": "^2.1.1",
+    "url-parse": "^1.5.10"
+  }
+}
