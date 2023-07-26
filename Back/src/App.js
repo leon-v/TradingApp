@@ -1,9 +1,7 @@
-
-// const DB = require("./components/DB");
-// const IndependentReserve = require("./components/IndependentReserve/API");
 const MarketLogger = require("./components/MarketLogger/MarketLogger");
-// const HTTPServer = require("./components/HTTPServer");
+
 const GetMarketSummaryEndpoint = require("./components/Endpoint/GetMarketSummary");
+const GetMarketHistory = require("./components/Endpoint/GetMarketHistory");
 
 process.env.TZ = 'Pacific/Auckland';
 
@@ -15,10 +13,12 @@ const appConfig = {
 
 // let ir = new IndependentReserve(appConfig);
 
-const marketLogger = new MarketLogger(appConfig);
+// Start logging data
+new MarketLogger(appConfig);
 
-const getMarketSummary = new GetMarketSummaryEndpoint(appConfig);
-// let httpServer = new HTTPServer();
+// Create REST endpoints for the FE
+new GetMarketSummaryEndpoint(appConfig);
+new GetMarketHistory(appConfig);
 
 
 (async () => {

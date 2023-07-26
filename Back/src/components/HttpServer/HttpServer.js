@@ -4,15 +4,13 @@ class HTTPServer {
 
     constructor(appConfig) {
         this.appConfig = appConfig;
-        this.hostname = '127.0.0.1';
+        this.hostname = 'localhost';
         this.port = 3080;
         this.routes = {};
 
         this.http = require('http');
 
-        this.server = this.http.createServer(function (request, response) {
-            this.module.routeRequest(request, response);
-        });
+        this.server = this.http.createServer(this.routeRequest.bind(this));
 
         this.server.module = this;
 
@@ -53,7 +51,7 @@ class HTTPServer {
         response.end(JSON.stringify(responseData));
     }
 
-    async route(path, responder, context) {
+    addRoute(path, responder) {
         this.routes[path] = responder;
     }
 }

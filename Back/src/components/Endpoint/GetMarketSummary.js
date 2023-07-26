@@ -5,8 +5,9 @@ class GetMarketSummary {
 
     constructor(appConfig) {
         this.appConfig = appConfig;
-        this.httpServer = HTTPServer.instance(this);
-        this.httpServer.route('/getMarketSummary', this.getResponseData);
+
+        // Map /getMarketSummary tp this.getResponseData()
+        HTTPServer.instance(this).addRoute('/getMarketSummary', this.getResponseData.bind(this));
     }
 
     get ir(){
@@ -14,8 +15,7 @@ class GetMarketSummary {
     }
 
     async getResponseData(request, response){
-        console.log(this, request, response);
-        // return await this.ir.getMarketSummary('Btc', 'Nzd');
+        return await this.ir.getMarketSummary('Btc', 'Nzd');
     }
 }
 
