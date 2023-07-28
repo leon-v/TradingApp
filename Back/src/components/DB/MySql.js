@@ -72,7 +72,6 @@ class MySql {
             return date.toISOString();
         } else {
 
-            let dif = tzo >= 0 ? '+' : '-';
             let pad = function (num, digits = 2) {
                 return String(num).padStart(digits, "0");
             };
