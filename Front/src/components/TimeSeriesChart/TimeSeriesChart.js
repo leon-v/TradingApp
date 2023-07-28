@@ -10,7 +10,7 @@ class LineChartExample extends Component {
 
   async componentDidMount() {
     try {
-      const response = await fetch('/GetMarketHistory'); // Replace with the correct API endpoint
+      const response = await fetch('/api/GetMarketHistory'); // Replace with the correct API endpoint
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
