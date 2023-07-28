@@ -19,11 +19,43 @@ class GetMarketHistory {
 
     async getResponseData(request, response){
 
-        return await this.db.query(`
+        let data = await this.db.query(`
             SELECT *
             FROM MarketPriceHistory
-            WHERE timestamp > NOW() - INTERVAL 1 WEEK
+            WHERE timestamp > NOW() - INTERVAL 10 WEEK
         `);
+
+        let index = 0;
+        for (index in data) {
+            data[index].timestamp = new Date(data[index].timestamp).getTime() / 1000
+        }
+
+        data = this.reduceKeys(data);
+
+        return data;
+    }
+
+    reduceKeys(data) {
+
+        let result = {};
+        let index = 0;
+        for (index in data) {
+
+            let object = data[index];
+
+            let property = "";
+            for (property in object) {
+
+                if (typeof(result[property]) == "undefined") {
+                    result[property] = [];
+                }
+
+                let length = result[property].length;
+                result[property][length] = object[property];
+            }
+        }
+
+        return result;
     }
 }
 

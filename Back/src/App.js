@@ -1,7 +1,9 @@
-const MarketLogger = require("./components/MarketLogger/MarketLogger");
+const MarketLogger = require("./components/MarketRecorder/Logger");
 
 const GetMarketSummaryEndpoint = require("./components/Endpoint/GetMarketSummary");
 const GetMarketHistory = require("./components/Endpoint/GetMarketHistory");
+const Backfiller = require("./components/MarketRecorder/Backfiller");
+
 
 process.env.TZ = 'Pacific/Auckland';
 
@@ -11,15 +13,19 @@ const appConfig = {
     database: "TradingApp"
 }
 
-// let ir = new IndependentReserve(appConfig);
-
-// Start logging data
-new MarketLogger(appConfig);
-
 // Create REST endpoints for the FE
 new GetMarketSummaryEndpoint(appConfig);
 new GetMarketHistory(appConfig);
 
+// const backfiller = new Backfiller(appConfig);
+
+// const from = new Date('2017-01-01 00:00:00');
+// const to = new Date('2018-01-01 00:00:00');
+// console.log(backfiller.fill(from, to));
+
+
+// Start logging data
+// new MarketLogger(appConfig);
 
 (async () => {
     try {

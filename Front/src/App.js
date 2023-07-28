@@ -1,12 +1,11 @@
-
 import "./App.css";
 import React  from 'react';
-import ReLineChart from "./components/ReLineChart";
+import TimeSeriesChart from './components/TimeSeriesChart/TimeSeriesChart';
 
 const App = () => {
   return (
     <div className="App">
-      <ReLineChart />
+      <TimeSeriesChart />
     </div>
   );
 };
