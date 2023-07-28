@@ -7,7 +7,7 @@ class GetMarketHistory {
         this.appConfig = appConfig;
 
         // Map /GetMarketHistory tp this.getResponseData()
-        HTTPServer.instance(this).addRoute('/GetMarketHistory', this.getResponseData.bind(this));
+        HTTPServer.instance(this).addRoute('/api/GetMarketHistory', this.getResponseData.bind(this));
     }
 
     get ir(){

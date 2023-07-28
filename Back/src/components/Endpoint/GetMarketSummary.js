@@ -7,7 +7,7 @@ class GetMarketSummary {
         this.appConfig = appConfig;
 
         // Map /getMarketSummary tp this.getResponseData()
-        HTTPServer.instance(this).addRoute('/getMarketSummary', this.getResponseData.bind(this));
+        HTTPServer.instance(this).addRoute('/api/getMarketSummary', this.getResponseData.bind(this));
     }
 
     get ir(){

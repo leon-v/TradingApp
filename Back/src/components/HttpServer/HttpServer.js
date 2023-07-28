@@ -30,6 +30,8 @@ class HTTPServer {
 
     async routeRequest(request, response) {
 
+        console.log(request);
+
         let url = new Url(request.url.replace('//', '/'));
 
         let func = this.routes[url.pathname] || null;
