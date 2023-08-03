@@ -2,7 +2,7 @@ const MarketLogger = require("./components/MarketRecorder/Logger");
 
 const GetMarketSummaryEndpoint = require("./components/Endpoint/GetMarketSummary");
 const GetMarketHistory = require("./components/Endpoint/GetMarketHistory");
-const Backfiller = require("./components/MarketRecorder/Backfiller");
+// const Backfiller = require("./components/MarketRecorder/Backfiller");
 
 
 process.env.TZ = 'Pacific/Auckland';
@@ -10,7 +10,8 @@ process.env.TZ = 'Pacific/Auckland';
 const appConfig = {
     awsRegion: "ap-southeast-2",
     secretsKey: "TradingApp",
-    database: "TradingApp"
+    database: "TradingApp",
+    httpPort: process.env.HTTP_PORT
 }
 
 // Create REST endpoints for the FE
@@ -25,7 +26,7 @@ new GetMarketHistory(appConfig);
 
 
 // Start logging data
-// new MarketLogger(appConfig);
+new MarketLogger(appConfig);
 
 (async () => {
     try {

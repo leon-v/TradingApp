@@ -1,0 +1,14 @@
+[Unit]
+Description=App.js - making your environment variables rad
+Documentation=https://tradingapp.valkenb.org/documentation
+After=network.target
+
+[Service]
+Environment=HTTP_PORT=3080
+Type=simple
+User=ubuntu
+ExecStart=/usr/bin/node /home/ubuntu/TradingApp/Back/src/App.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

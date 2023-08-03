@@ -17,11 +17,11 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && rm -r /var/www/html/* && mv ./build/* /var/www/html/ && rm -r ./build",
+    "build": "react-scripts build && ./scripts/install.sh",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:3080",
+  "proxy": "http://localhost:3081",
   "eslintConfig": {
     "extends": [
       "react-app",

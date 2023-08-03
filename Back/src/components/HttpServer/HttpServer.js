@@ -5,7 +5,7 @@ class HTTPServer {
     constructor(appConfig) {
         this.appConfig = appConfig;
         this.hostname = 'localhost';
-        this.port = 3080;
+        this.port = appConfig.httpPort;
         this.routes = {};
 
         this.http = require('http');

@@ -1,9 +1,14 @@
 {
-  "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3",
-    "axios": "^1",
-    "ir-api": "^1",
-    "mysql": "^2",
-    "url-parse": "^1"
-  }
+    "dependencies": {
+        "@aws-sdk/client-secrets-manager": "^3",
+        "axios": "^1",
+        "ir-api": "^1",
+        "mysql": "^2",
+        "url-parse": "^1"
+    },
+    "scripts": {
+        "install": "./scripts/install.sh",
+        "restart": "sudo systemctl restart tradingapp",
+        "start": "sudo systemctl start tradingapp"
+    }
 }
