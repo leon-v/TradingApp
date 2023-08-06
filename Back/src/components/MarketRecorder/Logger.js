@@ -29,9 +29,11 @@ class MarketLogger {
         let marketSummary = await this.ir.getMarketSummary('Btc', 'Nzd');
 
         if (!marketSummary) {
-            console.debug("Failed to fetch market summary!");
+            this.debug("Failed to fetch market summary!");
             return;
         }
+
+        this.debug(marketSummary);
 
         // Check local varaible for change in data.
         if (marketSummary.lastPrice === this.lastPrice) {
@@ -43,14 +45,16 @@ class MarketLogger {
 
         // Check the latest data in SQL for a change in data
         let result = await this.db.query(`
-            SELECT last
+            SELECT timestamp, last
             FROM MarketPriceHistory
             WHERE \`timestamp\` = (
                 SELECT MAX(\`timestamp\`) FROM MarketPriceHistory
             )
         `);
 
-        if ((result[0]) && (result[0].last == marketSummary.lastPrice)) {
+        let previousMarketSummary = result[0] || null;
+
+        if ((previousMarketSummary) && (previousMarketSummary.last == marketSummary.lastPrice)) {
             this.debug("No change in last price when checking marketSummary.lastPrice");
             return;
         }
@@ -58,16 +62,38 @@ class MarketLogger {
         // The data has changed, record it.
         let isoLocaleTimestamp = this.db.getISOLocalString(marketSummary.createdTimestampUtc);
 
+        let currentDateTime = new Date(isoLocaleTimestamp);
+        let previousDateTime = currentDateTime;
+
+        if (previousMarketSummary && previousMarketSummary.timestamp) {
+            previousDateTime = new Date(previousMarketSummary.timestamp);
+        }
+        
+        let delay = (currentDateTime.getTime() - previousDateTime.getTime()) / 1000;
+
+        let change = 0
+        if (previousMarketSummary && previousMarketSummary.last) {
+            change = marketSummary.lastPrice - previousMarketSummary.last;
+        }
+
+        let trend = Math.sign(change);
+
         this.debug("Last price changed, recording data.");
+        this.debug("change: " + change);
+        this.debug("trend: " + trend);
+        this.debug("delay: " + delay);
 
         this.db.query(`
             INSERT INTO MarketPriceHistory
-            (timestamp, last)
+            (timestamp, last, \`change\`, trend, delay)
                 VALUES
-            (?, ?)
+            (?, ?, ?, ?, ?)
         `, [
             isoLocaleTimestamp,
             marketSummary.lastPrice,
+            change,
+            trend,
+            delay
         ]);
 
         this.db.query(`
@@ -93,7 +119,7 @@ class MarketLogger {
     }
 
     debug(message){
-        console.debug(this.constructor.name + ": " + message);
+        console.debug(this.constructor.name + ": ", message);
     }
 }
 

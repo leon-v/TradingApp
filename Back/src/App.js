@@ -1,7 +1,7 @@
 const MarketLogger = require("./components/MarketRecorder/Logger");
 
-const GetMarketSummaryEndpoint = require("./components/Endpoint/GetMarketSummary");
-const GetMarketHistory = require("./components/Endpoint/GetMarketHistory");
+const MarketSummaryApiEndpoint = require("./components/ApiEndpoints/MarketSummary");
+const MarketHistoryApiEndpoint = require("./components/ApiEndpoints/MarketHistory");
 // const Backfiller = require("./components/MarketRecorder/Backfiller");
 
 
@@ -15,8 +15,8 @@ const appConfig = {
 }
 
 // Create REST endpoints for the FE
-new GetMarketSummaryEndpoint(appConfig);
-new GetMarketHistory(appConfig);
+new MarketSummaryApiEndpoint(appConfig);
+new MarketHistoryApiEndpoint(appConfig);
 
 // const backfiller = new Backfiller(appConfig);
 

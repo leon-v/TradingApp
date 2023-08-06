@@ -25,7 +25,7 @@ class MySql {
 
         const rdsSecretValues = await secrets.getSecretValue(secretValues.rdsSecretsKey);
 
-        // console.log(rdsSecretValues, secretValues);
+        console.log(rdsSecretValues.password);
 
         const connectionSettings = {
             host: secretValues.rdsHost,
