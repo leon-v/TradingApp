@@ -7,6 +7,9 @@ class Backfiller {
         this.appConfig = appConfig;
     }
 
+    /**
+     * @return {IrApi2}
+     */
     get irApi2(){
         return IrApi2.instance(this);
     }

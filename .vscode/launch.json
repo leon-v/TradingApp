@@ -7,20 +7,14 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Back",
+            "name": "Launch Back Debug",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/Back/src/App.js"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Front Debug",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}/Front/src/App.js"
+            "program": "${workspaceFolder}/Back/src/App.js",
+            "env": {
+                "HTTP_PORT": "3081"
+            }
         }
     ]
 }

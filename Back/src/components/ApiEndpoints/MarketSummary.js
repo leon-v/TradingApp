@@ -1,7 +1,7 @@
 const HTTPServer = require("../HttpServer/HttpServer");
 const IndependentReserve = require("../IndependentReserve/IndependentReserve");
 
-class GetMarketSummary {
+class MarketSummary {
 
     constructor(appConfig) {
         this.appConfig = appConfig;
@@ -19,4 +19,4 @@ class GetMarketSummary {
     }
 }
 
-module.exports = GetMarketSummary;
+module.exports = MarketSummary;
