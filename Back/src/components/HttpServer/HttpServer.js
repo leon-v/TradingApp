@@ -1,4 +1,5 @@
 const Url = require('url-parse');
+const QueryString = require('querystring');
 
 class HTTPServer {
 
@@ -30,11 +31,10 @@ class HTTPServer {
 
     getRouteMethods(request) {
 
-        let url = new Url(request.url.replace('//', '/'));
-        request.urlPathSegments = url.pathname.split('/');
+        request.urlPathSegments = request.parsedUrl.pathname.split('/');
         request.urlPathSuffix = null;
 
-        let methods = this.routes[url.pathname] || null;
+        let methods = this.routes[request.parsedUrl.pathname] || null;
 
         if (methods) {
             return methods;
@@ -56,7 +56,7 @@ class HTTPServer {
                 continue;
             }
 
-            request.urlPathSuffix = url.pathname.substr(pathName.length - 2);
+            request.urlPathSuffix = request.parsedUrl.pathname.substr(pathName.length - 2);
 
             return methods;
         }
@@ -65,9 +65,9 @@ class HTTPServer {
     }
     async routeRequest(request, response) {
 
-        console.log(request);
-
         response.setHeader('Content-Type', 'application/json');
+
+        request.parsedUrl = new Url(request.url.replace('//', '/'));
 
         let methods = this.getRouteMethods(request);
 
@@ -90,6 +90,8 @@ class HTTPServer {
             }));
             return;
         }
+
+        request.queryParams = QueryString.parse(request.parsedUrl.query.substring(1));
 
         let responseData = await func(request, response);
 
