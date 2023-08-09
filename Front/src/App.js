@@ -5,25 +5,10 @@ import TimeSeriesChart from './components/TimeSeriesChart/TimeSeriesChart';
 const App = () => {
     return (
         <div className="App">
-            <h4>Price</h4>
-            <TimeSeriesChart
-                endpoint="/api/MarketHistory/last"
-            />
-            <hr></hr>
-            <hr></hr>
-            <h4>Trend +/-</h4>
-            <TimeSeriesChart
-                endpoint="/api/MarketHistory/trend"
-            />
-            <hr></hr>
-            <h4>Time to change</h4>
-            <TimeSeriesChart
-                endpoint="/api/MarketHistory/delay"
-            />
-            <h4>Change in price</h4>
-            <TimeSeriesChart
-                endpoint="/api/MarketHistory/change"
-            />
+            <TimeSeriesChart endpoint="/api/MarketHistory/last" width="50%" height={400} minScale={50000} roundScale={-3}/>
+            <TimeSeriesChart endpoint="/api/MarketHistory/trend" width="50%" height={400} />
+            <TimeSeriesChart endpoint="/api/MarketHistory/delay" width="50%" height={200} />
+            <TimeSeriesChart endpoint="/api/MarketHistory/change" width="50%" height={200} />
         </div>
     );
 };
