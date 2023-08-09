@@ -6,6 +6,8 @@ class MarketHistory {
     constructor(appConfig) {
         this.appConfig = appConfig;
 
+        this.hours = 8;
+
         // Map /GetMarketHistory tp this.getResponseData()
         HTTPServer.instance(this).addRoute('/api/MarketHistory/*', this.getResponseData.bind(this), 'GET');
     }
@@ -42,8 +44,10 @@ class MarketHistory {
                 timestamp,
                 last AS value
             FROM MarketPriceHistory
-            WHERE timestamp > NOW() - INTERVAL 1 HOUR
-        `);
+            WHERE timestamp > NOW() - INTERVAL ? HOUR
+        `, [
+            this.hours
+        ]);
 
         let index = 0;
         for (index in data) {
@@ -59,8 +63,10 @@ class MarketHistory {
                 timestamp,
                 \`change\` AS value
             FROM MarketPriceHistory
-            WHERE timestamp > NOW() - INTERVAL 1 HOUR
-        `);
+            WHERE timestamp > NOW() - INTERVAL ? HOUR
+        `, [
+            this.hours
+        ]);
 
         let index = 0;
         for (index in data) {
@@ -76,8 +82,10 @@ class MarketHistory {
                 timestamp,
                 trend AS value
             FROM MarketPriceHistory
-            WHERE timestamp > NOW() - INTERVAL 1 HOUR
-        `);
+            WHERE timestamp > NOW() - INTERVAL ? HOUR
+        `, [
+            this.hours
+        ]);
 
         let index = 0;
         let cumulative = 0;
@@ -97,8 +105,10 @@ class MarketHistory {
                 timestamp,
                 delay AS value
             FROM MarketPriceHistory
-            WHERE timestamp > NOW() - INTERVAL 1 HOUR
-        `);
+            WHERE timestamp > NOW() - INTERVAL ? HOUR
+        `, [
+            this.hours
+        ]);
 
         let index = 0;
         for (index in data) {
