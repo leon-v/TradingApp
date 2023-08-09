@@ -4,11 +4,8 @@ class ChartControlForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            value: 'Please write an essay about your favorite DOM element.'
+            value: this.props.value
         };
-
-        this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleChange(event) {
@@ -16,18 +13,21 @@ class ChartControlForm extends Component {
     }
 
     handleSubmit(event) {
-        alert('An essay was submitted: ' + this.state.value);
         event.preventDefault();
+        this.props.setValue(this.state.value);
     }
 
     render() {
         return (
-            <form onSubmit={this.handleSubmit}>
+            <form onSubmit={this.handleSubmit.bind(this)}>
                 <label>
-                    Essay:
-                    <textarea value={this.state.value} onChange={this.handleChange} />
+                    Hours:
+                    <input
+                        value={this.state.value}
+                        onChange={this.handleChange.bind(this)}
+                        placeholder="Hours"
+                    />
                 </label>
-                <input type="submit" value="Submit" />
             </form>
         );
     }

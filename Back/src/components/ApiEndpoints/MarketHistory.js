@@ -6,8 +6,6 @@ class MarketHistory {
     constructor(appConfig) {
         this.appConfig = appConfig;
 
-        this.hours = 8;
-
         // Map /GetMarketHistory tp this.getResponseData()
         HTTPServer.instance(this).addRoute('/api/MarketHistory/*', this.getResponseData.bind(this), 'GET');
     }
@@ -20,25 +18,25 @@ class MarketHistory {
     }
 
     async getResponseData(request, response) {
+        const hours = request.queryParams.hours || 1;
 
-        console.log(request.urlPathSuffix);
         switch (request.urlPathSuffix) {
             case '/last':
-                return await this.getLast();
+                return await this.getLast(hours);
                 break;
             case '/change':
-                return await this.getChange();
+                return await this.getChange(hours);
                 break;
             case '/trend':
-                return await this.getTrend();
+                return await this.getTrend(hours);
                 break;
             case '/delay':
-                return await this.getDelay();
+                return await this.getDelay(hours);
                 break;
         }
     }
 
-    async getLast() {
+    async getLast(hours) {
         let data = await this.db.query(`
             SELECT
                 timestamp,
@@ -46,7 +44,7 @@ class MarketHistory {
             FROM MarketPriceHistory
             WHERE timestamp > NOW() - INTERVAL ? HOUR
         `, [
-            this.hours
+            hours
         ]);
 
         let index = 0;
@@ -57,7 +55,7 @@ class MarketHistory {
         return this.reduceKeys(data);
     }
 
-    async getChange() {
+    async getChange(hours) {
         let data = await this.db.query(`
             SELECT
                 timestamp,
@@ -65,7 +63,7 @@ class MarketHistory {
             FROM MarketPriceHistory
             WHERE timestamp > NOW() - INTERVAL ? HOUR
         `, [
-            this.hours
+            hours
         ]);
 
         let index = 0;
@@ -76,7 +74,7 @@ class MarketHistory {
         return this.reduceKeys(data);
     }
 
-    async getTrend() {
+    async getTrend(hours) {
         let data = await this.db.query(`
             SELECT
                 timestamp,
@@ -84,7 +82,7 @@ class MarketHistory {
             FROM MarketPriceHistory
             WHERE timestamp > NOW() - INTERVAL ? HOUR
         `, [
-            this.hours
+            hours
         ]);
 
         let index = 0;
@@ -98,7 +96,7 @@ class MarketHistory {
         return this.reduceKeys(data);
     }
 
-    async getDelay() {
+    async getDelay(hours) {
 
         let data = await this.db.query(`
             SELECT
@@ -107,7 +105,7 @@ class MarketHistory {
             FROM MarketPriceHistory
             WHERE timestamp > NOW() - INTERVAL ? HOUR
         `, [
-            this.hours
+            hours
         ]);
 
         let index = 0;

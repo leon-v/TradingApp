@@ -10,35 +10,41 @@ class TimeSeriesChart extends Component {
             loading: true,
             error: null,
         };
+        this.endpointQuery = null;
     }
 
-    async componentDidMount() {
+    componentDidMount() {
+        this.updateData();
+    }
 
-        try {
-            const response = await fetch(this.props.endpoint); // Replace with the correct API endpoint
+    componentDidUpdate() {
+        this.updateData();
+    }
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+    updateData(){
 
-            const jsonData = await response.json();
-
-            const data = jsonData.timestamp.map((timestamp, index) => ({
-                date: new Date(timestamp * 1000).getTime(), // Convert Unix timestamp to milliseconds
-                value: jsonData.value[index],
-            }));
-
-            // Sort the data by the date field in ascending order
-            const sortedData = data.sort((a, b) => a.date - b.date);
-
-            this.setState({ data: sortedData, loading: false });
-        } catch (error) {
-            this.setState({ error: 'Error fetching data', loading: false });
+        if (this.endpointQuery === this.props.endpointQuery) {
+            return;
         }
+
+        this.endpointQuery = this.props.endpointQuery;
+
+        this.setState({ loading: true });
+
+        const uri = this.props.endpoint+ '?' + new URLSearchParams(this.endpointQuery);
+
+        fetch(uri)
+            .then(response => response.json())
+            .then(data => {
+                this.setState({ data: data, loading: false });
+            })
+            .catch(error => {
+                this.setState({ error: 'Error fetching data', loading: false });
+            });
     }
 
     render() {
-        const { data, loading, error } = this.state;
+        let { data, loading, error } = this.state;
 
         if (loading) {
             return <div>Loading...</div>;
@@ -48,19 +54,24 @@ class TimeSeriesChart extends Component {
             return <div>Error: {error}</div>;
         }
 
+        data = data.timestamp.map((timestamp, index) => ({
+            date: new Date(timestamp * 1000).getTime(), // Convert Unix timestamp to milliseconds
+            value: data.value[index],
+        }));
+
+        data = data.sort((a, b) => a.date - b.date);
+
         // Calculate the Y-axis domain based on the data
         let minYValue = Math.min(...data.map(item => item.value));
         let maxYValue = Math.max(...data.map(item => item.value));
 
         if (this.props.minScale) {
             let scaleRange = Math.abs(maxYValue - minYValue);
-            console.log(minYValue, maxYValue);
             if (scaleRange < this.props.minScale) {
                 let mid = (minYValue + maxYValue) / 2;
                 minYValue = mid + (this.props.minScale / 2);
                 maxYValue = mid - (this.props.minScale / 2);
             }
-            console.log(minYValue, maxYValue);
         }
 
         if (this.props.roundScale) {
@@ -68,7 +79,6 @@ class TimeSeriesChart extends Component {
                 let multiplier = Math.pow(10, -this.props.roundScale);
                 minYValue = Math.round(minYValue / multiplier) * multiplier;
                 maxYValue = Math.round(maxYValue / multiplier) * multiplier;
-                console.log('Rounded', minYValue, maxYValue);
             }
         }
 
