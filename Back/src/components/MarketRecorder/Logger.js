@@ -24,7 +24,7 @@ class MarketLogger {
 
     async log() {
 
-        this.debug("Fetching market summary");
+        // this.debug("Fetching market summary");
 
         let marketSummary = await this.ir.getMarketSummary('Btc', 'Nzd');
 
@@ -33,14 +33,14 @@ class MarketLogger {
             return;
         }
 
-        this.debug(marketSummary);
+        // this.debug(marketSummary);
 
         // Check local varaible for change in data.
         if (marketSummary.lastPrice === this.lastPrice) {
-            this.debug("No change in last price when checking this.lastPrice");
+            // this.debug("No change in last price when checking this.lastPrice");
             return;
         }
-        
+
         this.lastPrice = marketSummary.lastPrice;
 
         // Check the latest data in SQL for a change in data
@@ -68,7 +68,7 @@ class MarketLogger {
         if (previousMarketSummary && previousMarketSummary.timestamp) {
             previousDateTime = new Date(previousMarketSummary.timestamp);
         }
-        
+
         let delay = (currentDateTime.getTime() - previousDateTime.getTime()) / 1000;
 
         let change = 0
