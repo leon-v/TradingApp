@@ -17,35 +17,77 @@ class MarketHistory {
         return MySql.instance(this);
     }
 
+    parseIntOrFallback(value, fallback) {
+        return Number.isInteger(parseInt(value)) ? parseInt(value) : fallback;
+    }
+
     async getResponseData(request, response) {
-        const hours = request.queryParams.hours || 1;
 
         switch (request.urlPathSuffix) {
             case '/last':
-                return await this.getLast(hours);
+                return await this.getLast(request.queryParams);
                 break;
             case '/change':
-                return await this.getChange(hours);
+                return await this.getChange(request.queryParams);
                 break;
             case '/trend':
-                return await this.getTrend(hours);
+                return await this.getTrend(request.queryParams);
                 break;
             case '/delay':
-                return await this.getDelay(hours);
+                return await this.getDelay(request.queryParams);
                 break;
         }
     }
 
-    async getLast(hours) {
+    getQueryFilter(params) {
+
+        // offsetDays:
+
+        return {
+            where: `
+                WHERE \`timestamp\` > NOW()
+
+                    - INTERVAL ? DAY
+                    - INTERVAL ? HOUR
+                    - INTERVAL ? MINUTE
+
+                    - INTERVAL ? DAY
+                    - INTERVAL ? HOUR
+                    - INTERVAL ? MINUTE
+                AND \`timestamp\` < NOW()
+                    - INTERVAL ? DAY
+                    - INTERVAL ? HOUR
+                    - INTERVAL ? MINUTE
+
+            `,
+            values: [
+                this.parseIntOrFallback(params.offsetDays, 0),
+                this.parseIntOrFallback(params.offsetHours, 0),
+                this.parseIntOrFallback(params.offsetMinutes, 0),
+
+                this.parseIntOrFallback(params.rangeDays, 0),
+                this.parseIntOrFallback(params.rangeHours, 8),
+                this.parseIntOrFallback(params.rangeMinutes, 0),
+
+                this.parseIntOrFallback(params.offsetDays, 0),
+                this.parseIntOrFallback(params.offsetHours, 0),
+                this.parseIntOrFallback(params.offsetMinutes, 0),
+
+
+            ]
+        }
+    }
+
+    async getLast(params) {
+
+        const filter = this.getQueryFilter(params);
+
         let data = await this.db.query(`
             SELECT
                 timestamp,
                 last AS value
-            FROM MarketPriceHistory
-            WHERE timestamp > NOW() - INTERVAL ? HOUR
-        `, [
-            hours
-        ]);
+            FROM MarketPriceHistory` + filter.where,
+            filter.values);
 
         let index = 0;
         for (index in data) {
@@ -55,16 +97,16 @@ class MarketHistory {
         return this.reduceKeys(data);
     }
 
-    async getChange(hours) {
+    async getChange(params) {
+
+        const filter = this.getQueryFilter(params);
+
         let data = await this.db.query(`
             SELECT
                 timestamp,
                 \`change\` AS value
-            FROM MarketPriceHistory
-            WHERE timestamp > NOW() - INTERVAL ? HOUR
-        `, [
-            hours
-        ]);
+            FROM MarketPriceHistory` + filter.where,
+            filter.values);
 
         let index = 0;
         for (index in data) {
@@ -74,16 +116,16 @@ class MarketHistory {
         return this.reduceKeys(data);
     }
 
-    async getTrend(hours) {
+    async getTrend(params) {
+
+        const filter = this.getQueryFilter(params);
+
         let data = await this.db.query(`
             SELECT
                 timestamp,
                 trend AS value
-            FROM MarketPriceHistory
-            WHERE timestamp > NOW() - INTERVAL ? HOUR
-        `, [
-            hours
-        ]);
+            FROM MarketPriceHistory` + filter.where,
+            filter.values);
 
         let index = 0;
         let cumulative = 0;
@@ -96,17 +138,16 @@ class MarketHistory {
         return this.reduceKeys(data);
     }
 
-    async getDelay(hours) {
+    async getDelay(params) {
+
+        const filter = this.getQueryFilter(params);
 
         let data = await this.db.query(`
             SELECT
                 timestamp,
                 delay AS value
-            FROM MarketPriceHistory
-            WHERE timestamp > NOW() - INTERVAL ? HOUR
-        `, [
-            hours
-        ]);
+            FROM MarketPriceHistory` + filter.where,
+            filter.values);
 
         let index = 0;
         for (index in data) {
