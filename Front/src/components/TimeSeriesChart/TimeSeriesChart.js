@@ -21,7 +21,7 @@ class TimeSeriesChart extends Component {
         this.updateData();
     }
 
-    updateData(){
+    updateData() {
 
         if (this.endpointQuery === this.props.endpointQuery) {
             return;
@@ -31,7 +31,7 @@ class TimeSeriesChart extends Component {
 
         this.setState({ loading: true });
 
-        const uri = this.props.endpoint+ '?' + new URLSearchParams(this.endpointQuery);
+        const uri = this.props.endpoint + '?' + new URLSearchParams(this.endpointQuery);
 
         fetch(uri)
             .then(response => response.json())
@@ -41,6 +41,27 @@ class TimeSeriesChart extends Component {
             .catch(error => {
                 this.setState({ error: 'Error fetching data', loading: false });
             });
+    }
+
+    timeFormatter(tick) {
+
+        const date = new Date(tick);
+
+        const options = {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+            timeZoneName: 'short'
+        };
+
+        const formattedDate = date.toLocaleDateString(undefined, options).replace(',', '') +
+            "\r\n" + date.toLocaleTimeString(undefined, options);
+
+        return formattedDate;
     }
 
     render() {
@@ -82,6 +103,23 @@ class TimeSeriesChart extends Component {
             }
         }
 
+        const CustomTick = ({ x, y, payload }) => {
+            const date = new Date(payload.value); // Convert value to a Date object
+            const dateFormat = 'MMM dd, yyyy'; // Adjust date format as needed
+            const timeFormat = 'HH:mm'; // Adjust time format as needed
+
+            return (
+                <g transform={`translate(${x},${y})`}>
+                    <text x={0} y={0} dy="-1em" textAnchor="middle" fill="#666">
+                        {date.toLocaleDateString(undefined, { dateFormat })}
+                    </text>
+                    <text x={0} y={0} dy="1em" textAnchor="middle" fill="#666">
+                        {date.toLocaleTimeString(undefined, { timeFormat })}
+                    </text>
+                </g>
+            );
+        };
+
         return (
             <ResponsiveContainer
                 width={this.props.width || 200}
@@ -95,7 +133,7 @@ class TimeSeriesChart extends Component {
                         dataKey="date"
                         type="number"
                         domain={['auto', 'auto']}
-                        tickFormatter={(tick) => new Date(tick).toLocaleString()}
+                        tick={<CustomTick />}
                         scale="time"
                     />
                     <YAxis domain={[minYValue, maxYValue]} />
