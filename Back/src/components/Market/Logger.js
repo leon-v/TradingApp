@@ -1,5 +1,6 @@
 const MySql = require("../DB/MySql");
 const IndependentReserveApi = require("../IndependentReserve/IndependentReserve");
+const globalEvents = require("../Events/Global");
 
 class MarketLogger {
 
@@ -26,14 +27,14 @@ class MarketLogger {
 
         // this.debug("Fetching market summary");
 
-        let marketSummary = await this.ir.getMarketSummary('Btc', 'Nzd');
+        let marketSummary = await this.ir.getMarketSummary();
 
         if (!marketSummary) {
             this.debug("Failed to fetch market summary!");
             return;
         }
 
-        // this.debug(marketSummary);
+        globalEvents.emit('Price Check');
 
         // Check local varaible for change in data.
         if (marketSummary.lastPrice === this.lastPrice) {
@@ -114,6 +115,8 @@ class MarketLogger {
             marketSummary.dayLowestPrice,
             marketSummary.dayVolumeXbt,
         ]);
+
+        globalEvents.emit('Price Change');
 
         return marketSummary.lastPrice;
     }
