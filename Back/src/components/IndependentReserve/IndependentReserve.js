@@ -37,13 +37,19 @@ class IndependentReserve {
         });
     }
 
-    async placeMarketOrder(orderType,volume) {
+    async placeMarketOrder(orderType, volume, volumeCurrency) {
+
         return this.api.placeMarketOrder({
             primaryCurrencyCode: this.appConfig.secrets.primaryCurrency,
             secondaryCurrencyCode: this.appConfig.secrets.secondaryCurrency,
             orderType: orderType,
-            volume: volume
+            volume: volume,
+            volumeCurrencyType: volumeCurrency
         });
+    }
+
+    async getAccounts(){
+        return this.api.getAccounts();
     }
 }
 
