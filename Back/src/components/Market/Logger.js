@@ -11,15 +11,15 @@ class MarketLogger {
 
         this.log();
 
-        this.interval = setInterval(function(self){
+        this.interval = setInterval(function (self) {
             self.log();
         }, 2000, this);
     }
 
-    get ir(){
+    get ir() {
         return IndependentReserveApi.instance(this);
     }
-    get db(){
+    get db() {
         return MySql.instance(this);
     }
 
@@ -77,6 +77,8 @@ class MarketLogger {
             change = marketSummary.lastPrice - previousMarketSummary.last;
         }
 
+        change = this.round(change, 8);
+
         let trend = Math.sign(change);
 
         this.debug("Last price changed, recording data.");
@@ -121,7 +123,12 @@ class MarketLogger {
         return marketSummary.lastPrice;
     }
 
-    debug(message){
+    round(number, decimalPlaces) {
+        const factor = 10 ** decimalPlaces;
+        return Math.round(number * factor) / factor;
+    }
+
+    debug(message) {
         console.debug(this.constructor.name + ": ", message);
     }
 }
