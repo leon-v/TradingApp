@@ -1,4 +1,3 @@
-const AWSSecrets = require("../AwsSecrets/AwsSecrets");
 const IRApi = require("ir-api");
 
 class IndependentReserve {
@@ -27,18 +26,30 @@ class IndependentReserve {
             return this.apiInstance;
         }
 
-        const secrets = new AWSSecrets(this.appConfig);
-        const secretValues = secrets.getSecretValue(this.appConfig.secretsKey);
-
-        return this.apiInstance = IRApi(secretValues.IRKey, secretValues.IRSecret);
+        return this.apiInstance = IRApi(this.appConfig.secrets.IRKey, this.appConfig.secrets.IRSecret);
     }
 
-    async getMarketSummary(primaryCurrency, secondaryCurrency) {
+    async getMarketSummary() {
 
         return this.api.getMarketSummary({
-            primaryCurrencyCode: primaryCurrency,
-            secondaryCurrencyCode: secondaryCurrency
+            primaryCurrencyCode: this.appConfig.secrets.primaryCurrency,
+            secondaryCurrencyCode: this.appConfig.secrets.secondaryCurrency
         });
+    }
+
+    async placeMarketOrder(orderType, volume, volumeCurrency) {
+
+        return this.api.placeMarketOrder({
+            primaryCurrencyCode: this.appConfig.secrets.primaryCurrency,
+            secondaryCurrencyCode: this.appConfig.secrets.secondaryCurrency,
+            orderType: orderType,
+            volume: volume,
+            volumeCurrencyType: volumeCurrency
+        });
+    }
+
+    async getAccounts(){
+        return this.api.getAccounts();
     }
 }
 

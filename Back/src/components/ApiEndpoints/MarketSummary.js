@@ -15,7 +15,7 @@ class MarketSummary {
     }
 
     async getResponseData(request, response){
-        return await this.ir.getMarketSummary('Btc', 'Nzd');
+        return await this.ir.getMarketSummary();
     }
 }
 

@@ -29,7 +29,7 @@ class Api2 {
     async getHistory(from, to) {
 
         const query = {
-            symbol: "Btc/Nzd",
+            symbol: this.appConfig.primaryCurrency + "/" + this.appConfig.secondaryCurrency,
             resolution: 60,
             from: from.getTime() / 1000,
             to: to.getTime() / 1000,

@@ -1,5 +1,6 @@
 const MySql = require("../DB/MySql");
 const IndependentReserveApi = require("../IndependentReserve/IndependentReserve");
+const globalEvents = require("../Events/Global");
 
 class MarketLogger {
 
@@ -10,15 +11,15 @@ class MarketLogger {
 
         this.log();
 
-        this.interval = setInterval(function(self){
+        this.interval = setInterval(function (self) {
             self.log();
         }, 2000, this);
     }
 
-    get ir(){
+    get ir() {
         return IndependentReserveApi.instance(this);
     }
-    get db(){
+    get db() {
         return MySql.instance(this);
     }
 
@@ -26,14 +27,14 @@ class MarketLogger {
 
         // this.debug("Fetching market summary");
 
-        let marketSummary = await this.ir.getMarketSummary('Btc', 'Nzd');
+        let marketSummary = await this.ir.getMarketSummary();
 
         if (!marketSummary) {
             this.debug("Failed to fetch market summary!");
             return;
         }
 
-        // this.debug(marketSummary);
+        globalEvents.emit('Price Check');
 
         // Check local varaible for change in data.
         if (marketSummary.lastPrice === this.lastPrice) {
@@ -76,6 +77,8 @@ class MarketLogger {
             change = marketSummary.lastPrice - previousMarketSummary.last;
         }
 
+        change = this.round(change, 8);
+
         let trend = Math.sign(change);
 
         this.debug("Last price changed, recording data.");
@@ -115,10 +118,17 @@ class MarketLogger {
             marketSummary.dayVolumeXbt,
         ]);
 
+        globalEvents.emit('Price Change');
+
         return marketSummary.lastPrice;
     }
 
-    debug(message){
+    round(number, decimalPlaces) {
+        const factor = 10 ** decimalPlaces;
+        return Math.round(number * factor) / factor;
+    }
+
+    debug(message) {
         console.debug(this.constructor.name + ": ", message);
     }
 }
