@@ -109,9 +109,9 @@ class Trader {
             return;
         }
 
-        // await this.executeTrade(index, config);
+        console.log("EXECUTING TRADE");
 
-        console.log("EXECUTINF TRADE");
+        await this.executeTrade(index, config);
     }
 
     async executeTrade(index, config){
