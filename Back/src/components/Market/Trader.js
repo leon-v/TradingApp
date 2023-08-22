@@ -59,14 +59,16 @@ class Trader {
             return;
         }
 
+        let simulate = strToBool(config.simulate);
+
         let index = 0;
         for (index in config.trade) {
-            await this.processTradeConfig(index, config.trade[index]);
+            await this.processTradeConfig(index, config.trade[index], simulate);
         }
 
     }
 
-    async processTradeConfig(index, config) {
+    async processTradeConfig(index, config, simulate) {
 
         console.log("Checking trade " + index);
 
@@ -111,45 +113,81 @@ class Trader {
 
         console.log("EXECUTING TRADE");
 
-        await this.executeTrade(index, config);
+        await this.executeTrade(index, config, simulate);
     }
 
-    async executeTrade(index, config){
+    async executeTrade(index, config, simulate){
 
         let tradeCurrency = null;
         let orderType = null;
         let toTradeCurrencyType = null;
+        let tradeMin = null;
 
         switch (config.type) {
-            case "buy":
+            case "Buy":
                 tradeCurrency = this.appConfig.secrets.secondaryCurrency;
+                tradeMin = parseFloat(this.appConfig.secrets.secondaryCurrencyMinTrade);
                 orderType = "MarketBid";
                 toTradeCurrencyType = "Secondary";
                 break;
-            case "sell":
+            case "Sell":
                 tradeCurrency = this.appConfig.secrets.primaryCurrency;
+                tradeMin = parseFloat(this.appConfig.secrets.secondaryCurrencyMinTrade);
                 orderType = "MarketOffer";
                 toTradeCurrencyType = "Primary";
                 break;
+            default:
+                console.warn("config.type: " + config.type + " not handled.");
+                return;
         }
 
-        let toTrade = await this.getAvailableBalance(tradeCurrency);
+        let availableBalance = await this.getAvailableBalance(tradeCurrency);
 
-        console.log(toTrade);
+        console.log('Available Balance: ' + availableBalance);
 
-        if (!toTrade) {
-            console.log("   Unable to trade with '" + toTrade + "' '" + tradeCurrency + "'");
+        if (!availableBalance || availableBalance <= 0.00) {
+            console.log("   Unable to trade with '" + availableBalance + "' '" + tradeCurrency + "'");
             return;
         }
+
+        let toTrade = availableBalance;
 
         if (config.fraction) {
             toTrade *= parseFloat(config.fraction);
         }
 
+        // Use it all if we are lower than the min.
+        if (toTrade <= tradeMin) {
+            toTrade = availableBalance;
+        }
+
         console.log("Placing market order to buy '" + toTrade + "' '" + tradeCurrency + "'");
         let result = null;
         try{
-            result = await this.ir.placeMarketOrder(orderType, toTrade, toTradeCurrencyType);
+
+            if (!simulate) {
+                result = await this.ir.placeMarketOrder(orderType, toTrade, toTradeCurrencyType);
+            }
+            else{
+                console.log("SIMULATED SUCCESS", orderType, toTrade, toTradeCurrencyType);
+                result = {
+                    orderGuid: 'SIMULATED',
+                    createdTimestampUtc: (new Date()).toISOString(),
+                    type: orderType,
+                    volumeOrdered: toTrade,
+                    volumeFilled: toTrade,
+                    price: null,
+                    avgPrice: null,
+                    reservedAmount: toTrade,
+                    status: 'Open',
+                    primaryCurrencyCode: this.appConfig.primaryCurrency,
+                    secondaryCurrencyCode: this.appConfig.secondaryCurrency,
+                    feePercent: 0.005,
+                    volumeCurrencyType: toTradeCurrencyType
+                };
+            }
+            globalEvents.emit('Executed ' + config.type);
+
         } catch (error) {
             console.warn("placeMarketOrder error: " + error.message, error);
         }

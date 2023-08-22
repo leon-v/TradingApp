@@ -14,6 +14,9 @@ class MarketLogger {
         this.interval = setInterval(function (self) {
             self.log();
         }, 2000, this);
+
+        globalEvents.on('Executed Buy', this.logTradeBuy.bind(this));
+        globalEvents.on('Executed Sell', this.logTradeSell.bind(this));
     }
 
     get ir() {
@@ -21,6 +24,58 @@ class MarketLogger {
     }
     get db() {
         return MySql.instance(this);
+    }
+
+    async logTradeBuy(){
+        // -1 to adjust for the market change after my buy brings the price up.
+        // This is so the next price change doesn't cause a feedback loop.
+        await this.logTrade(-1);
+    }
+
+    async logTradeSell(){
+        // +1 to adjust for the market change after mt sell brings the price down.
+        // This is so the next price change doesn't cause a feedback loop.
+        await this.logTrade(1);
+    }
+
+    async logTrade(trend) {
+
+        // Check the latest data in SQL for a change in data
+        let result = await this.db.query(`
+            SELECT timestamp, last
+            FROM MarketPriceHistory
+            WHERE \`timestamp\` = (
+                SELECT MAX(\`timestamp\`) FROM MarketPriceHistory
+            )
+            AND type = 'Market'
+        `);
+
+        let previousMarketSummary = result[0] || null;
+
+        if (!previousMarketSummary) {
+            console.warn('previousMarketSummary missing');
+            return;
+        }
+
+        let currentDateTime = new Date();
+        let previousDateTime = new Date(previousMarketSummary.timestamp);
+
+        let delay = (currentDateTime.getTime() - previousDateTime.getTime()) / 1000;
+
+        this.db.query(`
+            INSERT INTO MarketPriceHistory
+            (timestamp, type, last, \`change\`, trend, delay)
+                VALUES
+            (?, ?, ?, ?, ?, ?)
+        `, [
+            this.db.getISOLocalString(currentDateTime),
+            'Trade',
+            previousMarketSummary.last,
+            0,
+            trend,
+            delay
+        ]);
+
     }
 
     async log() {
@@ -48,7 +103,8 @@ class MarketLogger {
         let result = await this.db.query(`
             SELECT timestamp, last
             FROM MarketPriceHistory
-            WHERE \`timestamp\` = (
+            WHERE \`type\` = 'Market'
+            AND \`timestamp\` = (
                 SELECT MAX(\`timestamp\`) FROM MarketPriceHistory
             )
         `);
@@ -61,7 +117,7 @@ class MarketLogger {
         }
 
         // The data has changed, record it.
-        let isoLocaleTimestamp = this.db.getISOLocalString(marketSummary.createdTimestampUtc);
+        let isoLocaleTimestamp = this.db.getISOLocalString(new Date(marketSummary.createdTimestampUtc));
 
         let currentDateTime = new Date(isoLocaleTimestamp);
         let previousDateTime = currentDateTime;
@@ -86,11 +142,11 @@ class MarketLogger {
         this.debug("trend: " + trend);
         this.debug("delay: " + delay);
 
-        this.db.query(`
+        await this.db.query(`
             INSERT INTO MarketPriceHistory
-            (timestamp, last, \`change\`, trend, delay)
+            (timestamp, type, last, \`change\`, trend, delay)
                 VALUES
-            (?, ?, ?, ?, ?)
+            (?, 'Market', ?, ?, ?, ?)
         `, [
             isoLocaleTimestamp,
             marketSummary.lastPrice,
@@ -99,7 +155,7 @@ class MarketLogger {
             delay
         ]);
 
-        this.db.query(`
+        await this.db.query(`
             INSERT INTO MarketPriceDaily
                 (date, highest, lowest, volume)
             VALUES

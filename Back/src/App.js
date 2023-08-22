@@ -1,3 +1,5 @@
+require('./Functions.js');
+
 (async () => {
     const AWSSecrets = require("./components/AwsSecrets/AwsSecrets");
 

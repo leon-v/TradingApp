@@ -45,7 +45,8 @@ class MarketHistory {
 
         return {
             where: `
-                WHERE \`timestamp\` > NOW()
+                WHERE type = 'Market'
+                AND \`timestamp\` > NOW()
 
                     - INTERVAL ? DAY
                     - INTERVAL ? HOUR

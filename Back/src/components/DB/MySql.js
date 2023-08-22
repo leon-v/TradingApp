@@ -66,8 +66,7 @@ class MySql {
         );
     };
 
-    getISOLocalString(timestamp) {
-        let date = new Date(timestamp);
+    getISOLocalString(date) {
         let tzo = -date.getTimezoneOffset();
 
         if (tzo === 0) {
