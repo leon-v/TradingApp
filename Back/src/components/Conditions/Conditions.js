@@ -83,10 +83,10 @@ class Conditions {
      * @param {Object} object - The object to compare against the conditions.
      * @returns {boolean} - True if all conditions are met, otherwise false.
      */
-    compareObjectWithConditions(object) {
+    compare(object) {
         for (const key in this.conditions) {
             if (this.conditions[key].every(condition => condition.operation === '=')) {
-                console.log(`All conditions for key ${key} are using =. Skipping.`);
+                // console.log(`All conditions for key ${key} are using =. Skipping.`);
                 continue;
             }
 
@@ -100,11 +100,9 @@ class Conditions {
 
             console.log(`Checking conditions for key: ${key}`);
             if (!this.checkConditionsForKey(keyConditions, value)) {
-                console.log(`Conditions for key ${key} not met.`);
+                console.log('All conditions not met.');
                 return false;
             }
-
-            console.log(`Conditions for key ${key} met.`);
         }
 
         console.log('All conditions met for all keys.');
@@ -125,11 +123,11 @@ class Conditions {
             }
 
             if (!this.compareValues(condition.operation, value, condition.value)) {
-                console.log(`Comparison failed: data ${value} ${condition.operation} cond ${condition.value}`);
+                console.log(`Comparison failed: data ${value} ${condition.operation} cond ${condition.value} = false`);
                 return false;
             }
 
-            console.log(`Comparison success: data ${value} ${condition.operation} cond ${condition.value}`);
+            console.log(`Comparison success: data ${value} ${condition.operation} cond ${condition.value} = true`);
         }
 
         return true;
@@ -175,3 +173,5 @@ class Conditions {
         return undefined;
     }
 }
+
+module.exports = Conditions;

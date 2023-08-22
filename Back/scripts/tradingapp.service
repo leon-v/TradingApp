@@ -9,6 +9,7 @@ Type=simple
 User=ubuntu
 ExecStart=/usr/bin/node /home/ubuntu/TradingApp/Back/src/App.js
 Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
