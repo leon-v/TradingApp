@@ -1,27 +1,19 @@
 class Conditions {
+
+    /**
+     * Constructs a new Conditions object based on the provided conditions string.
+     * @param {string} conditionsString - The string containing conditions.
+     */
     constructor(conditionsString) {
         this.operations = ['=', '==', '>', '<', '>=', '<='];
         this.conditions = this.parseConditions(conditionsString);
     }
 
-    splitConditionPart(conditionPart) {
-        const operators = this.operations.sort((a, b) => b.length - a.length); // Sort by length to prioritize >= and <=
-        let operator = '';
-        for (const op of operators) {
-            if (conditionPart.includes(op)) {
-                operator = op;
-                break;
-            }
-        }
-
-        if (!operator) {
-            return null;
-        }
-
-        const [key, value] = conditionPart.split(operator).map(part => part.trim());
-        return { key, operator, value };
-    }
-
+    /**
+     * Parses the conditions string into a dictionary of conditions.
+     * @param {string} conditionsString - The string containing conditions.
+     * @returns {Object} - Dictionary of conditions.
+     */
     parseConditions(conditionsString) {
         const conditions = {};
         const conditionParts = conditionsString.split(',');
@@ -51,6 +43,34 @@ class Conditions {
         return conditions;
     }
 
+    /**
+     * Splits a condition part into key, operator, and value components.
+     * @param {string} conditionPart - The condition part to split.
+     * @returns {Object|null} - An object containing key, operator, and value properties, or null if parsing fails.
+     */
+    splitConditionPart(conditionPart) {
+        const operators = this.operations.sort((a, b) => b.length - a.length); // Sort by length to prioritize >= and <=
+        let operator = '';
+        for (const op of operators) {
+            if (conditionPart.includes(op)) {
+                operator = op;
+                break;
+            }
+        }
+
+        if (!operator) {
+            return null;
+        }
+
+        const [key, value] = conditionPart.split(operator).map(part => part.trim());
+        return { key, operator, value };
+    }
+
+    /**
+     * Normalizes the given operator by removing any spaces and ensuring it's a valid operation.
+     * @param {string} operator - The operator to normalize.
+     * @returns {string|null} - The normalized operator or null if the operator is invalid.
+     */
     normalizeOperator(operator) {
         if (this.operations.includes(operator)) {
             return operator;
@@ -58,9 +78,11 @@ class Conditions {
         return null;
     }
 
-    /******************************************** */
-    // ... (other methods)
-
+    /**
+     * Compares an object with the defined conditions and returns whether all conditions are met.
+     * @param {Object} object - The object to compare against the conditions.
+     * @returns {boolean} - True if all conditions are met, otherwise false.
+     */
     compareObjectWithConditions(object) {
         for (const key in this.conditions) {
             if (this.conditions[key].every(condition => condition.operation === '=')) {
@@ -89,6 +111,12 @@ class Conditions {
         return true;
     }
 
+    /**
+     * Checks if the specified conditions for a key are met for a given value.
+     * @param {Array} conditions - The conditions to check for the key.
+     * @param {*} value - The value to compare against the conditions.
+     * @returns {boolean} - True if all conditions are met, otherwise false.
+     */
     checkConditionsForKey(conditions, value) {
         for (const condition of conditions) {
             if (!this.operations.includes(condition.operation)) {
@@ -107,6 +135,13 @@ class Conditions {
         return true;
     }
 
+    /**
+     * Compares two values using the specified operation.
+     * @param {string} operation - The operation to use for comparison.
+     * @param {*} actualValue - The actual value for comparison.
+     * @param {*} expectedValue - The expected value for comparison.
+     * @returns {boolean} - True if the comparison is true, otherwise false.
+     */
     compareValues(operation, actualValue, expectedValue) {
         switch (operation) {
             case '==':
@@ -124,6 +159,11 @@ class Conditions {
         }
     }
 
+    /**
+     * Retrieves the value associated with the specified key using the '=' operation.
+     * @param {string} key - The key for which to retrieve the value.
+     * @returns {*} - The value associated with the key, or undefined if not found.
+     */
     getValue(key) {
         if (this.conditions[key]) {
             const equalCondition = this.conditions[key].find(condition => condition.operation === '=');
