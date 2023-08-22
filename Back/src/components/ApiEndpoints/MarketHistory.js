@@ -1,8 +1,15 @@
 const HTTPServer = require("../HttpServer/HttpServer");
 const MySql = require("../DB/MySql");
 
+/**
+ * Class for serving market history API data.
+ */
 class MarketHistory {
 
+     /**
+     * Creates a new instance of the MarketHistory class.
+     * @param {object} appConfig - The application configuration object.
+     */
     constructor(appConfig) {
         this.appConfig = appConfig;
 
@@ -10,38 +17,52 @@ class MarketHistory {
         HTTPServer.instance(this).addRoute('/api/MarketHistory/*', this.getResponseData.bind(this), 'GET');
     }
 
+     /**
+     * Returns the instance of IndependentReserve associated with this class.
+     * @returns {IndependentReserve} The IndependentReserve instance.
+     */
     get ir() {
         return IndependentReserve.instance(this);
     }
+
+    /**
+     * Returns the instance of MySql associated with this class.
+     * @returns {MySql} The MySql instance.
+     */
     get db() {
         return MySql.instance(this);
     }
 
-    parseIntOrFallback(value, fallback) {
-        return Number.isInteger(parseInt(value)) ? parseInt(value) : fallback;
-    }
-
+    /**
+     * Handles the incoming request and returns the corresponding response data.
+     * @param {object} request - The incoming HTTP request object.
+     * @param {object} response - The HTTP response object.
+     * @returns {Promise<object>} The response data based on the requested URL path suffix.
+     */
     async getResponseData(request, response) {
 
         switch (request.urlPathSuffix) {
             case '/last':
                 return await this.getLast(request.queryParams);
-                break;
+
             case '/change':
                 return await this.getChange(request.queryParams);
-                break;
+
             case '/trend':
                 return await this.getTrend(request.queryParams);
-                break;
+
             case '/delay':
                 return await this.getDelay(request.queryParams);
-                break;
+
         }
     }
 
+    /**
+     * Constructs a query filter object based on the provided parameters.
+     * @param {object} params - The query parameters.
+     * @returns {object} The query filter object.
+     */
     getQueryFilter(params) {
-
-        // offsetDays:
 
         return {
             where: `
@@ -62,23 +83,26 @@ class MarketHistory {
 
             `,
             values: [
-                this.parseIntOrFallback(params.offsetDays, 0),
-                this.parseIntOrFallback(params.offsetHours, 0),
-                this.parseIntOrFallback(params.offsetMinutes, 0),
+                global.parseIntOrFallback(params.offsetDays, 0),
+                global.parseIntOrFallback(params.offsetHours, 0),
+                global.parseIntOrFallback(params.offsetMinutes, 0),
 
-                this.parseIntOrFallback(params.rangeDays, 0),
-                this.parseIntOrFallback(params.rangeHours, 8),
-                this.parseIntOrFallback(params.rangeMinutes, 0),
+                global.parseIntOrFallback(params.rangeDays, 0),
+                global.parseIntOrFallback(params.rangeHours, 8),
+                global.parseIntOrFallback(params.rangeMinutes, 0),
 
-                this.parseIntOrFallback(params.offsetDays, 0),
-                this.parseIntOrFallback(params.offsetHours, 0),
-                this.parseIntOrFallback(params.offsetMinutes, 0),
-
-
+                global.parseIntOrFallback(params.offsetDays, 0),
+                global.parseIntOrFallback(params.offsetHours, 0),
+                global.parseIntOrFallback(params.offsetMinutes, 0),
             ]
         }
     }
 
+    /**
+     * Retrieves the last market data based on the provided parameters.
+     * @param {object} params - The query parameters.
+     * @returns {Promise<object>} The retrieved market data.
+     */
     async getLast(params) {
 
         const filter = this.getQueryFilter(params);
@@ -98,6 +122,11 @@ class MarketHistory {
         return this.reduceKeys(data);
     }
 
+    /**
+     * Retrieves market change data based on the provided parameters.
+     * @param {object} params - The query parameters.
+     * @returns {Promise<object>} The retrieved market change data.
+     */
     async getChange(params) {
 
         const filter = this.getQueryFilter(params);
@@ -117,6 +146,11 @@ class MarketHistory {
         return this.reduceKeys(data);
     }
 
+    /**
+     * Retrieves market trend data based on the provided parameters.
+     * @param {object} params - The query parameters.
+     * @returns {Promise<object>} The retrieved market trend data.
+     */
     async getTrend(params) {
 
         const filter = this.getQueryFilter(params);
@@ -139,6 +173,11 @@ class MarketHistory {
         return this.reduceKeys(data);
     }
 
+    /**
+     * Retrieves market delay data based on the provided parameters.
+     * @param {object} params - The query parameters.
+     * @returns {Promise<object>} The retrieved market delay data.
+     */
     async getDelay(params) {
 
         const filter = this.getQueryFilter(params);
@@ -158,6 +197,11 @@ class MarketHistory {
         return this.reduceKeys(data);
     }
 
+     /**
+     * Reduces the keys of an array of data objects.
+     * @param {Array<object>} data - The array of data objects.
+     * @returns {object} The reduced data object.
+     */
     reduceKeys(data) {
 
         let result = {};
@@ -182,4 +226,5 @@ class MarketHistory {
     }
 }
 
+// Export the MarketHistory class
 module.exports = MarketHistory;

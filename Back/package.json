@@ -10,5 +10,8 @@
         "install": "./scripts/install.sh",
         "restart": "sudo systemctl restart tradingapp",
         "start": "sudo systemctl start tradingapp"
+    },
+    "devDependencies": {
+        "eslint": "^8.47.0"
     }
 }
