@@ -46,18 +46,11 @@ class Trader {
         return result;
     }
 
-    async getConfig() {
-        return await this.secrets.getSecretValue(this.appConfig.secretsKey);
-    }
-
     async priceChange() {
 
-        const config = await this.getConfig();
+        const config = await this.secrets.getSecretValue(this.appConfig.secretsKey);
 
         let simulate = strToBool(config.simulate);
-
-        // DEBUG
-        simulate = true;
 
         const prefix = "Trade ";
         let name = '';
@@ -66,8 +59,6 @@ class Trader {
             if (!name.startsWith(prefix)){
                 continue;
             }
-
-            console.log(name);
 
             let tradeName = name.substring(prefix.length);
 
@@ -114,10 +105,10 @@ class Trader {
 
         console.log("EXECUTING TRADE " + tradeName);
 
-        await this.executeTrade(index, conditions, simulate);
+        await this.executeTrade(tradeName, conditions, simulate);
     }
 
-    async executeTrade(index, conditions, simulate){
+    async executeTrade(tradeName, conditions, simulate){
 
         let tradeCurrency = null;
         let orderType = null;
@@ -140,7 +131,7 @@ class Trader {
                 toTradeCurrencyType = "Primary";
                 break;
             default:
-                console.warn("config.type: '" + type + "' not handled.");
+                console.warn("Type: '" + type + "' not handled.");
                 return;
         }
 
@@ -198,7 +189,7 @@ class Trader {
 
         await this.updateHoldings();
 
-        console.log("EXECUTED TRADE " + index + ". ", config, result);
+        console.log("EXECUTED TRADE " + tradeName + ". ");
     }
 
     async getAvailableBalance(currency) {
