@@ -2,6 +2,7 @@ const MySql = require("../DB/MySql");
 const IndependentReserveApi = require("../IndependentReserve/IndependentReserve");
 const globalEvents = require("../Events/Global");
 const AWSSecrets = require("../AwsSecrets/AwsSecrets");
+const Conditions = require("../Conditions/Conditions");
 
 class Trader {
 
@@ -45,34 +46,34 @@ class Trader {
         return result;
     }
 
-    async getConfig() {
-        const appConfig = await this.secrets.getSecretValue(this.appConfig.secretsKey);
-        return this.splitKeys(appConfig);
-    }
-
     async priceChange() {
 
-        const config = await this.getConfig();
-
-        if (!config.trade) {
-            console.log('No trade config found.');
-            return;
-        }
+        const config = await this.secrets.getSecretValue(this.appConfig.secretsKey);
 
         let simulate = strToBool(config.simulate);
 
-        let index = 0;
-        for (index in config.trade) {
-            await this.processTradeConfig(index, config.trade[index], simulate);
-        }
+        const prefix = "Trade ";
+        let name = '';
+        for (name in config) {
 
+            if (!name.startsWith(prefix)){
+                continue;
+            }
+
+            let tradeName = name.substring(prefix.length);
+
+            let conditions = new Conditions(config[name]);
+
+            await this.processTradeConfig(tradeName, conditions, simulate);
+        }
     }
 
-    async processTradeConfig(index, config, simulate) {
+    async processTradeConfig(tradeName, conditions, simulate) {
 
-        console.log("Checking trade " + index);
+        console.log("Checking trade: " + tradeName);
 
-        if (!config.delay) {
+        let delay = parseInt(conditions.getValue('delay'));
+        if (!delay) {
             console.log("   Missing delay, skipping.");
             return;
         }
@@ -86,44 +87,37 @@ class Trader {
             FROM MarketPriceHistory
             WHERE timestamp > NOW() - INTERVAL ? SECOND
         `, [
-            parseInt(config.delay)
+            delay
         ]);
 
         let data = result[0] || null;
 
-        if (!this.check(config, data, "count")) {
-            console.log("   Checked failed. Skipping.")
+        if (!data) {
+            console.log("   Missing data, skipping.");
             return;
         }
 
-        if (!this.check(config, data, "change")) {
-            console.log("   Checked failed. Skipping.")
+        let executeTrade = conditions.compare(data);
+
+        if (!executeTrade) {
             return;
         }
 
-        if (!this.check(config, data, "trend")) {
-            console.log("   Checks failed. Skipping.")
-            return;
-        }
+        console.log("EXECUTING TRADE " + tradeName);
 
-        if (!config.type) {
-            console.log("   No type (buy/sell) specified. Skipping.");
-            return;
-        }
-
-        console.log("EXECUTING TRADE");
-
-        await this.executeTrade(index, config, simulate);
+        await this.executeTrade(tradeName, conditions, simulate);
     }
 
-    async executeTrade(index, config, simulate){
+    async executeTrade(tradeName, conditions, simulate){
 
         let tradeCurrency = null;
         let orderType = null;
         let toTradeCurrencyType = null;
         let tradeMin = null;
 
-        switch (config.type) {
+        let type = conditions.getValue('type');
+
+        switch (type) {
             case "Buy":
                 tradeCurrency = this.appConfig.secrets.secondaryCurrency;
                 tradeMin = parseFloat(this.appConfig.secrets.secondaryCurrencyMinTrade);
@@ -137,7 +131,7 @@ class Trader {
                 toTradeCurrencyType = "Primary";
                 break;
             default:
-                console.warn("config.type: " + config.type + " not handled.");
+                console.warn("Type: '" + type + "' not handled.");
                 return;
         }
 
@@ -152,8 +146,9 @@ class Trader {
 
         let toTrade = availableBalance;
 
-        if (config.fraction) {
-            toTrade *= parseFloat(config.fraction);
+        let fraction = conditions.getValue('fraction');
+        if (fraction) {
+            toTrade *= parseFloat(fraction);
         }
 
         // Use it all if we are lower than the min.
@@ -186,7 +181,7 @@ class Trader {
                     volumeCurrencyType: toTradeCurrencyType
                 };
             }
-            globalEvents.emit('Executed ' + config.type);
+            globalEvents.emit('Executed ' + type);
 
         } catch (error) {
             console.warn("placeMarketOrder error: " + error.message, error);
@@ -194,56 +189,7 @@ class Trader {
 
         await this.updateHoldings();
 
-        console.log("EXECUTED TRADE " + index + ". ", config, result);
-    }
-
-
-    check(config, data, property) {
-
-        console.log("   Checking " + property + ". Config=" + config[property] + ", Data=" + data[property]);
-
-        if (typeof (config[property]) == 'undefined' || config[property] === '') {
-            console.log("       Config " + property + " '" + config[property] + "' invalid. Skipping (pass)");
-            return true;
-        }
-
-        if (typeof (data[property]) == 'undefined' || data[property] === null) {
-            console.log("       Data " + property + " '" + data[property] + "' invalid. Fail.");
-            return false;
-        }
-
-        let configValue = config[property];
-        let dataValue = data[property];
-
-        switch (property) {
-            case "change":
-                configValue = parseFloat(configValue);
-                dataValue = parseFloat(dataValue);
-                break;
-
-            default:
-                configValue = parseInt(configValue);
-                dataValue = parseInt(dataValue);
-                break;
-        }
-
-        if (configValue < 0) {
-            if (dataValue > configValue) {
-                console.log("       " + property + " " + dataValue + " over the config value " + configValue + " Fail.");
-                return false;
-            }
-        }
-
-        else if (configValue > 0) {
-            if (dataValue < configValue) {
-                console.log("       " + property + " " + dataValue + " under the config value " + configValue + " Fail.");
-                return false;
-            }
-        }
-
-        console.log("   Pass");
-
-        return true;
+        console.log("EXECUTED TRADE " + tradeName + ". ");
     }
 
     async getAvailableBalance(currency) {

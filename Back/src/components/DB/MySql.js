@@ -1,13 +1,34 @@
 const AWSSecrets = require("../AwsSecrets/AwsSecrets");
 const mysql = require("mysql");
 
+/**
+ * A class representing a MySQL database connection manager.
+ */
 class MySql {
 
+    /**
+     * Creates an instance of the MySql class.
+     * @param {object} appConfig - Configuration settings for the application.
+     */
     constructor(appConfig) {
+
+         /**
+         * The configuration settings for the application.
+         * @type {object}
+         */
         this.appConfig = appConfig;
+
+        /**
+         * The MySQL connection instance.
+         * @type {object|null}
+         */
         this.connectionInstance = null;
     }
 
+    /**
+     * Gets the MySQL connection instance. If not available, creates a new connection instance.
+     * @returns {Promise<object>} The MySQL connection instance.
+     */
     get connection() {
 
         if (this.connectionInstance) {
@@ -17,6 +38,10 @@ class MySql {
         return this.connectionInstance = this.getConnectionInstance();
     }
 
+    /**
+     * Creates a MySQL connection instance based on the configuration settings.
+     * @returns {Promise<object>} The MySQL connection instance.
+     */
     async getConnectionInstance() {
 
         const secrets = new AWSSecrets(this.appConfig);
@@ -42,6 +67,11 @@ class MySql {
 
     }
 
+    /**
+     * Returns a singleton instance of the MySql class based on the provided dependee.
+     * @param {object} dependee - An object with required properties.
+     * @returns {MySql} An instance of the MySql class.
+     */
     static instance(dependee) {
 
         if (dependee.mySqlInstance) {
@@ -55,6 +85,12 @@ class MySql {
         return dependee.mySqlInstance = new this(dependee.appConfig);
     }
 
+    /**
+     * Executes a SQL query on the database.
+     * @param {string} query - The SQL query to execute.
+     * @param {Array} values - Optional values to replace placeholders in the query.
+     * @returns {Promise<Array|object>} The query result.
+     */
     async query(query, values) {
         return new Promise(
             async (resolve, reject) => {
@@ -66,6 +102,11 @@ class MySql {
         );
     };
 
+    /**
+     * Formats a date object to an ISO-like local string representation.
+     * @param {Date} date - The date to format.
+     * @returns {string} The formatted date string.
+     */
     getISOLocalString(date) {
         let tzo = -date.getTimezoneOffset();
 
